@@ -207,15 +207,16 @@ CREATE TABLE campaigns (
   -- 기본 정보
   title VARCHAR(200) NOT NULL,
   category VARCHAR(50) NOT NULL,
+  region VARCHAR(50),
 
   -- 이미지
-  thumbnail_url TEXT NOT NULL,
+  thumbnail_url TEXT,
   additional_images JSONB DEFAULT '[]'::jsonb,
 
   -- 모집 정보
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
-  max_applicants INTEGER NOT NULL CHECK (max_applicants > 0),
+  total_recruits INTEGER NOT NULL CHECK (total_recruits > 0),
 
   -- 콘텐츠 (리치 텍스트)
   benefits TEXT NOT NULL,
@@ -223,11 +224,15 @@ CREATE TABLE campaigns (
   notes TEXT,
 
   -- 매장 정보 (JSONB)
-  store_info JSONB NOT NULL,
+  store_info JSONB,
+
+  -- 위치 정보
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
 
   -- 상태
   status VARCHAR(20) NOT NULL DEFAULT 'recruiting'
-    CHECK (status IN ('recruiting', 'ended', 'completed', 'closed')),
+    CHECK (status IN ('recruiting', 'in_progress', 'completed', 'canceled')),
 
   -- 통계
   applicants_count INTEGER DEFAULT 0 NOT NULL,
@@ -244,11 +249,16 @@ CREATE INDEX idx_campaigns_advertiser_id ON campaigns(advertiser_id);
 CREATE INDEX idx_campaigns_status ON campaigns(status);
 CREATE INDEX idx_campaigns_end_date ON campaigns(end_date);
 CREATE INDEX idx_campaigns_category ON campaigns(category);
+CREATE INDEX idx_campaigns_region ON campaigns(region);
 CREATE INDEX idx_campaigns_created_at ON campaigns(created_at DESC);
 CREATE INDEX idx_campaigns_deleted_at ON campaigns(deleted_at) WHERE deleted_at IS NULL;
 
 -- 모집 중 체험단 조회용 복합 인덱스
 CREATE INDEX idx_campaigns_recruiting ON campaigns(status, end_date, created_at DESC)
+  WHERE deleted_at IS NULL;
+
+-- 지역별 검색 복합 인덱스
+CREATE INDEX idx_campaigns_region_status ON campaigns(region, status, created_at DESC)
   WHERE deleted_at IS NULL;
 
 -- 제약 조건
@@ -257,8 +267,12 @@ ALTER TABLE campaigns
 
 -- 코멘트
 COMMENT ON TABLE campaigns IS '체험단 정보';
-COMMENT ON COLUMN campaigns.status IS '상태: recruiting(모집중), ended(모집종료), completed(선정완료), closed(종료)';
-COMMENT ON COLUMN campaigns.store_info IS '매장 상세 정보 (JSONB): {"store_name":"...","address":"...","phone":"...","hours":"...","latitude":...,"longitude":...}';
+COMMENT ON COLUMN campaigns.status IS '상태: recruiting(모집중), in_progress(진행중), completed(완료), canceled(취소됨)';
+COMMENT ON COLUMN campaigns.region IS '지역 정보 (예: 서울, 경기, 부산 등)';
+COMMENT ON COLUMN campaigns.total_recruits IS '총 모집 인원';
+COMMENT ON COLUMN campaigns.latitude IS '위도 (매장 위치)';
+COMMENT ON COLUMN campaigns.longitude IS '경도 (매장 위치)';
+COMMENT ON COLUMN campaigns.store_info IS '매장 상세 정보 (JSONB): {"store_name":"...","address":"...","phone":"...","hours":"..."}';
 COMMENT ON COLUMN campaigns.additional_images IS '추가 이미지 URL 배열 (JSONB)';
 
 -- 트리거
@@ -289,12 +303,7 @@ CREATE TABLE applications (
 
   -- 타임스탬프
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-
-  -- 중복 지원 방지 (rejected 제외)
-  CONSTRAINT unique_application_per_campaign
-    UNIQUE NULLS NOT DISTINCT (campaign_id, influencer_id,
-      CASE WHEN status != 'rejected' THEN status END)
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 -- 인덱스
@@ -302,6 +311,11 @@ CREATE INDEX idx_applications_campaign_id ON applications(campaign_id);
 CREATE INDEX idx_applications_influencer_id ON applications(influencer_id);
 CREATE INDEX idx_applications_status ON applications(status);
 CREATE INDEX idx_applications_created_at ON applications(created_at DESC);
+
+-- 중복 지원 방지 (rejected 제외) - Partial Unique Index
+CREATE UNIQUE INDEX unique_application_per_campaign
+  ON applications(campaign_id, influencer_id)
+  WHERE status != 'rejected';
 
 -- 지원자 조회용 복합 인덱스
 CREATE INDEX idx_applications_campaign_status ON applications(campaign_id, status, created_at DESC);

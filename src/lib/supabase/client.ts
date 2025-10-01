@@ -1,8 +1,6 @@
-import { createBrowserClient } from "@supabase/ssr";
+// Re-export browser client for backward compatibility
+export { getSupabaseBrowserClient as createSupabaseClient } from './browser-client';
 
-export function createClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+// Deprecated: use getSupabaseBrowserClient() instead
+import { getSupabaseBrowserClient } from './browser-client';
+export const supabase = getSupabaseBrowserClient();

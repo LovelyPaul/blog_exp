@@ -29,6 +29,9 @@ const copyCookies = (from: NextResponse, to: NextResponse) => {
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
 
+  console.log('[Middleware] Path:', request.nextUrl.pathname);
+  console.log('[Middleware] Cookies:', request.cookies.getAll().map(c => c.name).join(', '));
+
   const supabase = createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -51,6 +54,8 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  console.log('[Middleware] User:', user ? user.id : 'null');
+
   const decision = match({ user, pathname: request.nextUrl.pathname })
     .when(
       ({ user: currentUser, pathname }) =>
@@ -69,7 +74,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  // 미들웨어 비활성화 - API 인증은 withAuth()로 처리, 페이지 보호는 클라이언트에서 처리
+  matcher: [],
 };
