@@ -145,7 +145,7 @@ store_info      | jsonb   | YES
 
 마이그레이션 완료 후:
 
-1. ✅ 애플리케이션 테스트: https://supernext-hfe4u09ja-lovepauls-projects-29bc01ef.vercel.app
+1. ✅ 애플리케이션 테스트: 
 2. ✅ 회원가입 → 온보딩 → 체험단 등록 테스트
 3. ✅ 데이터 정상 입력 확인
 

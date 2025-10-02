@@ -106,9 +106,26 @@ export const AdvertiserCampaignsList = () => {
           <div className="space-y-4">
             {allCampaigns.map((campaign) => (
               <Card key={campaign.id} className="p-6">
-                <div className="flex flex-col gap-4">
+                <div className="flex gap-4">
+                  {/* Thumbnail Image */}
+                  <div className="relative w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    {campaign.thumbnail_url ? (
+                      <Image
+                        src={campaign.thumbnail_url}
+                        alt={campaign.title}
+                        fill
+                        className="object-cover"
+                        sizes="128px"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+
                   {/* Info */}
-                  <div className="space-y-3">
+                  <div className="flex-1 space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <h3 className="text-xl font-bold mb-1">
