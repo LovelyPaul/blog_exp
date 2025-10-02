@@ -69,8 +69,11 @@ export const CampaignForm = ({ mode, campaignId, defaultValues }: CampaignFormPr
             <Input
               id="thumbnail_url"
               {...register('thumbnail_url')}
-              placeholder="https://example.com/image.jpg"
+              placeholder="비워두면 자동으로 랜덤 이미지가 설정됩니다"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              비워두면 자동으로 랜덤 이미지가 생성됩니다. 직접 입력하려면 https:// 로 시작하는 이미지 URL을 입력하세요.
+            </p>
             {errors.thumbnail_url && (
               <p className="text-sm text-red-500 mt-1">{errors.thumbnail_url.message}</p>
             )}

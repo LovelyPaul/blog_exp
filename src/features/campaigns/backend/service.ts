@@ -233,13 +233,17 @@ export const createCampaign = async (
     );
   }
 
+  // Generate a random seed for picsum.photos if no thumbnail provided
+  const thumbnailUrl = data.thumbnail_url ||
+    `https://picsum.photos/seed/${Date.now()}-${Math.random().toString(36).substring(7)}/800/600`;
+
   const { data: campaign, error } = await client
     .from('campaigns')
     .insert({
       advertiser_id: advertiserId,
       advertiser_profile_id: profile.id,
       title: data.title,
-      thumbnail_url: data.thumbnail_url || null,
+      thumbnail_url: thumbnailUrl,
       benefits: data.benefits,
       missions: data.missions,
       notes: data.notes || null,
