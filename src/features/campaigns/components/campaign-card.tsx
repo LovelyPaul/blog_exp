@@ -26,11 +26,21 @@ export const CampaignCard = ({ campaign }: CampaignCardProps) => {
 
   return (
     <Link href={`/campaigns/${campaign.id}`}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
         <div className="relative aspect-[4/3] bg-gray-100">
-          <div className="flex items-center justify-center h-full text-gray-400">
-            No Image
-          </div>
+          {campaign.thumbnail_url ? (
+            <Image
+              src={campaign.thumbnail_url}
+              alt={campaign.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              No Image
+            </div>
+          )}
           <div className="absolute top-2 right-2">
             <Badge
               variant={dDay === '마감' ? 'secondary' : 'default'}
